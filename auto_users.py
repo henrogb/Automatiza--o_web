@@ -1,4 +1,5 @@
 import time
+import pandas as pd 
 from selenium import webdriver 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,18 +12,6 @@ login_page = "https://admin.thexpos.net/users"
 usuario = 'henro.isquierdo'
 senha = '@Fr33d0m02'
 
-new_user = "teste kendrick orichi"
-
-aniv = "05/10/2004"
-
-cpf = "03494064300"
-
-celular = "5191733189"
-
-email = "teste.silva@gmail.com"
-
-senha_padrao = "Master@2025"
-
 def login_maker(nome_usuario):    
     nome = new_user.split(" ")
     primeiro = nome[0]
@@ -32,15 +21,11 @@ def login_maker(nome_usuario):
 
 
 
-
-
 navegador = webdriver.Chrome()
 
 navegador.get(login_page)
 
 navegador.maximize_window()
-
-
 
 wait = WebDriverWait(navegador, 10)
 
@@ -57,85 +42,74 @@ botao_login.click()
 produto = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.po-menu-item[aria-label='Usuários']")))
 produto.click()
 
-novo_usuario = wait.until(EC.element_to_be_clickable(
-    (By.XPATH, "//button[@class='po-button' and @p-kind='primary']//span[normalize-space(text())='Novo Usuário']"))
-)
-novo_usuario.click()
-
-nome_u = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='name']")))
-nome_u.click()
-nome_u.send_keys(new_user)
 
 
-logs = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='hidden']")))
-logs.click()
-login = login_maker(new_user)
-logs.send_keys(login)
+df = pd.read_excel("../usuarios.xlsx")
 
-birth_date = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='datepicker']")))
-birth_date.click()
-birth_date.send_keys(aniv)
+for index, row in df.iterrows():
+    new_user = row["nome"]
+    aniv = row["aniversario"] 
+    cpf = str(row["cpf"]).zfill(11)
+    celular = str(row["celular"])
+    email = row["email"]
+    senha_padrao = "Master@2025"
 
-apelido = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='nickName']")))
-apelido.click()
-apelido.send_keys(new_user)
+    # Criar usuário
+    novo_usuario = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//button[@class='po-button' and @p-kind='primary']//span[normalize-space(text())='Novo Usuário']"))
+    )
+    novo_usuario.click()
 
-dropdown = navegador.find_element(By.CSS_SELECTOR, "select.po-select[name='select']")
+    nome_u = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='name']")))
+    nome_u.send_keys(new_user)
 
-select = Select(dropdown)
+    logs = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='hidden']")))
+    login_gen = login_maker(new_user)
+    logs.send_keys(login_gen)
 
-select.select_by_visible_text("Cpf")
+    birth_date = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='datepicker']")))
+    birth_date.send_keys(aniv)
 
-i_cpf = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='documentNumber']")))
-i_cpf.click()
-i_cpf.send_keys(cpf)
+    apelido = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='nickName']")))
+    apelido.send_keys(new_user)
 
-i_celular = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='phone']")))
-i_celular.click()
-i_celular.send_keys(celular)
+    dropdown = navegador.find_element(By.CSS_SELECTOR, "select.po-select[name='select']")
+    select = Select(dropdown)
+    select.select_by_visible_text("Cpf")
 
-i_email = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='email']")))
-navegador.execute_script("""
-arguments[0].value = arguments[1];
-arguments[0].dispatchEvent(new Event('input'));
-arguments[0].dispatchEvent(new Event('change'));
-""", i_email, email)
+    i_cpf = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='documentNumber']")))
+    i_cpf.send_keys(cpf)
 
+    i_celular = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='phone']")))
+    i_celular.send_keys(celular)
 
-senha = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='password']")))
-senha.click()
-senha.send_keys(senha_padrao)
+    i_email = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='email']")))
+    navegador.execute_script("""
+    arguments[0].value = arguments[1];
+    arguments[0].dispatchEvent(new Event('input'));
+    arguments[0].dispatchEvent(new Event('change'));
+    """, i_email, email)
+    i_email.send_keys(Keys.TAB)
 
-confirme_senha = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='confirmNewPassword']")))
-confirme_senha.click()
-confirme_senha.send_keys(senha_padrao)
+    senha_input = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='password']")))
+    senha_input.send_keys(senha_padrao)
 
+    confirme_senha = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "input.po-input[name='confirmNewPassword']")))
+    confirme_senha.send_keys(senha_padrao)
 
+    elemento = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.po-input-icon-right[aria-label='Perfil']")))
+    navegador.execute_script("arguments[0].scrollIntoView(true);", elemento)
+    elemento.click()
 
-elemento = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.po-input-icon-right[aria-label='Perfil']")))
+    caixa = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.po-item-list[aria-label='Caixa']")))
+    caixa.click()
 
-navegador.execute_script("arguments[0].scrollIntoView(true);", elemento)
-elemento.click()
+    salvar = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class,'po-button')]//span[normalize-space(text())='Salvar']")))
+    salvar.click()
 
+    # pequena pausa entre cadastros
+    time.sleep(2)
 
-caixa = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.po-item-list[aria-label='Caixa']")))
-caixa.click()
-
-
-salvar = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class,'po-button')]//span[normalize-space(text())='Salvar']")))
-salvar.click()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print("usuários cadastrados com sucesso!!")
 time.sleep(20)
+navegador.quit()
