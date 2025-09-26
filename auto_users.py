@@ -106,6 +106,18 @@ for index, row in df.iterrows():
 
     salvar = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class,'po-button')]//span[normalize-space(text())='Salvar']")))
     salvar.click()
+    
+    toaster = WebDriverWait(driver, 10).until(
+    EC.visibility_of_element_located((By.CSS_SELECTOR, "po-toaster.po-toaster-success"))
+    )
+
+
+    mensagem = toaster.find_element(By.CLASS_NAME, "po-toaster-message").text
+    print("Mensagem do toast:", mensagem)
+
+
+    botao_concluido = toaster.find_element(By.CLASS_NAME, "po-toaster-button-close")
+    botao_concluido.click()
 
     # pequena pausa entre cadastros
     time.sleep(2)
